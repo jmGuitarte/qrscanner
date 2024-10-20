@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <h1>QR Code Scanner</h1>
+  <div id="qr-reader" style="width: 500px;"></div>
+  <p id="qr-result">Scanned QR Code: None</p>
+
+  <script>
+    function onScanSuccess(qrCodeMessage) {
+      document.getElementById("qr-result").innerText = "Scanned QR Code: " + qrCodeMessage;
+      
+      // Send QR code to Google Sheet
+      fetch('https://script.google.com/macros/s/AKfycbygnN7WeQEc9x1-3OvwjSQyBAmD3LvZqGxeum7zpT2shrC555YDDWC3av73hjDGRw/exec', {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ qrCode: qrCodeMessage })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('QR Code stored successfully!');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
+    function onScanError(errorMessage) {
+      // Handle scan error
+      console.error(errorMessage);
+    }
+
+    var html5QrCode = new Html5Qrcode("qr-reader");
+    html5QrCode.start(
+      { facingMode: "environment" }, // Use rear camera
+      { fps: 10, qrbox: 250 },
+      onScanSuccess,
+      onScanError
+    );
+  </script>
+</body>
+</html>
